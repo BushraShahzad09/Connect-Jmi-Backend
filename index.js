@@ -1,5 +1,6 @@
 import express from "express";
 const app=express()
+import { db } from "./connect.js"
 import authRoutes from "./routes/auth.js"
 import userRoutes from "./routes/users.js"
 import postRoutes from "./routes/posts.js"
@@ -7,12 +8,14 @@ import commentRoutes from "./routes/comments.js"
 import cookieParser from "cookie-parser"    
 import cors from 'cors'
 import bodyParser from "body-parser";
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 //middlewares
 app.use((req, res, next)=>{
     res.header("Access-Control-Allow-Credentials", true);
     next();
 })
+
 app.use(express.json())
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(cors({

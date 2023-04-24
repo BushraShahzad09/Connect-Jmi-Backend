@@ -1,8 +1,11 @@
 import { db } from "../connect.js"
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken'
-
-export const register = (req, res) => {
+import jwt from 'jsonwebtoken';
+// import { generateOTP } from '../services/otp.js';
+// import { sendMail } from '../services/emailService.js';
+import { generateOTP } from '../services/otp.js';
+import { sendMail }  from '../services/emailService.js';
+export const register = async (req, res) => {
     // Check user if exists
     const q = "SELECT * FROM users WHERE username=?"
     db.query(q, [req.body.username], (err, data) => {
@@ -12,11 +15,20 @@ export const register = (req, res) => {
         //Create a new hashed password
         const salt = bcrypt.genSaltSync(10);
         const hashedPassword = bcrypt.hashSync(req.body.password, salt)
-
-        const q2 = "INSERT INTO users (`username`, `email`, `password`, `name`) VALUES (?)"
+        const otpGenerated = generateOTP();
+        const q2 = "INSERT INTO users (`username`, `email`, `password`, `name`, `otp`) VALUES (?)"
         const values = [
-            req.body.username, req.body.email, hashedPassword, req.body.name
+            req.body.username, req.body.email, hashedPassword, req.body.name,otpGenerated
         ]
+        try {
+             sendMail({
+              to: req.body.email,
+              OTP: otpGenerated,
+            });
+           // return [true, newUser];
+          } catch (error) {
+            return  res.status(409).json(`Unable to send email ${error}`);
+          }
         db.query(q2, [values], (err, data) => {
             
             if (err) return res.status(500).json(err)
