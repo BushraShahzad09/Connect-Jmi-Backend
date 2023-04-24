@@ -1,8 +1,9 @@
-import mysql from 'mysql'
-
+import mysql, { createConnection } from 'mysql'
+import * as dotenv from 'dotenv';
+dotenv.config();
 export const db=mysql.createConnection({
     host: 'localhost',
-    user: 'root',
-    password: 'hammad123',
-    database: 'jmi_connect'
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB
 })
