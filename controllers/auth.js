@@ -63,7 +63,7 @@ export const login = (req, res) => {
         
         const token = jwt.sign({ id: data[0].id, isVerified: data[0].isverified }, "secretkey")
 
-        const { password, ...others } = data[0]
+        const { password, otp, ...others } = data[0]
 
         res.cookie('accessToken', token, {
             httpOnly: true,
@@ -79,9 +79,10 @@ export const otpVerification = async (req,res) => {
         // if (data.length) return res.status(409).json('User already exists.')
         console.log(data)
         console.log(data[0].otp,req.body.otp);
+        const { password, otp, ...others } = data[0]
 
         if(Number(req.body.otp) === data[0].otp) {
-            return res.status(200).json("valid_otp");
+            return res.status(200).json(others);
         } else {
             return res.status(400).json("Invalid otp");
         }
