@@ -1,16 +1,24 @@
 import { db } from "../connect.js"
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-// import { generateOTP } from '../services/otp.js';
-// import { sendMail } from '../services/emailService.js';
 import { generateOTP } from '../services/otp.js';
 import { sendMail }  from '../services/emailService.js';
+
 export const register = async (req, res) => {
     // Check user if exists
     const q = "SELECT * FROM users WHERE username=?"
     db.query(q, [req.body.username], (err, data) => {
         if (err) return res.status(500).json(err)
-        if (data.length) return res.status(409).json('User already exists')
+        if (data.length) return res.status(409).json('User already exists.')
+        console.log(data)
+
+    // Check if email is unique or not
+    const q = "SELECT * FROM users WHERE email=?"
+    db.query(q, [req.body.email], (err, data) => {
+        if (err) return res.status(500).json(err)
+        if (data.length) return res.status(409).json('Email already in use.')
+        console.log(data)
+
 
         //Create a new hashed password
         const salt = bcrypt.genSaltSync(10);
@@ -40,6 +48,7 @@ export const register = async (req, res) => {
                 httpOnly: true,
             }).status(200).json(val)
         })
+    });
     })
 }
 export const login = (req, res) => {
@@ -61,6 +70,47 @@ export const login = (req, res) => {
         }).status(200).json(others)
 
     })
+}
+
+export const otpVerification = async (req,res) => {
+    const q = "SELECT * FROM users WHERE username=?"
+    db.query(q, [req.body.username], (err, data) => {
+        if (err) return res.status(500).json(err)
+        // if (data.length) return res.status(409).json('User already exists.')
+        console.log(data)
+        console.log(data[0].otp,req.body.otp);
+
+        if(Number(req.body.otp) === data[0].otp) {
+            return res.status(200).json("valid_otp");
+        } else {
+            return res.status(400).json("Invalid otp");
+        }
+    });
+}
+
+export const resendOTP = async (req,res) => {
+    const q = "SELECT * FROM users WHERE username=?"
+    db.query(q, [req.body.username], (err, data) => {
+        if (err) return res.status(500).json(err)
+
+        const otpGenerated = generateOTP();
+        try {
+            sendMail({
+             to: data[0].email,
+             OTP: otpGenerated,
+           });
+          // return [true, newUser];
+         } catch (error) {
+           return  res.status(409).json(`Unable to send email ${error}`);
+         }
+
+         const q2 = "UPDATE users SET otp=? WHERE username=?"
+         db.query(q2, [otpGenerated ,data[0].username], (err, data) => {
+            if (err) return res.status(500).json(err);     
+            
+            console.log("otp sent again successfully!!!")
+        });
+    });
 }
 
 export const logout = (req, res) => {
