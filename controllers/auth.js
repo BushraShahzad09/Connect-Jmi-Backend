@@ -114,6 +114,38 @@ export const resendOTP = async (req,res) => {
     });
 }
 
+export const editProfile = async(req, res) => {
+    const q = "SELECT * FROM users_info WHERE username=?"
+    db.query(q, [req.body.currentuser], (err, data) => {
+        if (err) return res.status(500).json(err)
+        console.log(data);
+
+        const q2 = "Update users set username=?, email=?, name=?  where username=?"
+        db.query(q2, [req.body.username, req.body.email, req.body.name, req.body.currentuser], (err, data) => {
+            if(err) return res.status(500).json(err)
+            // console.log(data);
+        })
+
+        if(data.length !== 0) {
+            var q3 = "Update users_info set username=?, email=?, name=?, profession=?, organisation=?, location=?, phone=?, birthday=?, bio=? where username=?";
+            db.query(q3, [req.body.username, req.body.email, req.body.name, req.body.profession, req.body.organisation,  req.body.location, req.body.phone, req.body.birthday, req.body.bio, req.body.currentuser], (err, data) => {
+                if(err) return res.status(500).json(err)
+                return res.status(200).json("User has been updated successfully!!!")
+            })
+        }
+        else if (data.length === 0){
+            var q3 = "INSERT INTO users_info VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            db.query(q3, [req.body.username, req.body.email, req.body.name, req.body.profession, req.body.organisation,  req.body.location, req.body.phone, req.body.birthday, req.body.bio], (err, data) => {
+                if(err) return res.status(500).json(err)
+            })
+        } else {
+            console.log("User info logged successfully");
+            return res.status(200).json("User data has been updated")
+        }
+
+    })
+}
+
 export const logout = (req, res) => {
     res.clearCookie("accessToken", {
         secure: true,
