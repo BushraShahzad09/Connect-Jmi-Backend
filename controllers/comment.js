@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken'
 import moment from "moment/moment.js"
 
 export const getComments= (req, res)=>{
-    const q="SELECT c.*, u.id AS userid, name FROM comments AS c JOIN users AS u ON (u.id=c.userid) WHERE c.postId=? ORDER BY c.createdat DESC"
+    const q="SELECT c.*,u.username AS username, u.id AS userid, name FROM comments AS c JOIN users AS u ON (u.id=c.userid) WHERE c.postId=? ORDER BY c.createdat DESC"
     
     db.query(q, [req.query.postId] , (err,data)=>{
         if(err) return res.status(500).json(err);
