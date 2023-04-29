@@ -28,6 +28,7 @@ export const register = async (req, res) => {
         const values = [
             req.body.username, req.body.email, hashedPassword, req.body.name,otpGenerated
         ]
+       
         try {
              sendMail({
               to: req.body.email,
@@ -37,6 +38,13 @@ export const register = async (req, res) => {
           } catch (error) {
             return  res.status(409).json(`Unable to send email ${error}`);
           }
+          const q3 = "INSERT INTO users_info (`username`, `email`, `name`) VALUES (?)"
+          const values1 = [
+              req.body.username, req.body.email, req.body.name
+          ]
+          db.query(q3, [values1], (err, data) => {
+              if (err) return res.status(500).json(err)
+          })
         db.query(q2, [values], (err, data) => {
             
             if (err) return res.status(500).json(err)
@@ -48,6 +56,7 @@ export const register = async (req, res) => {
                 httpOnly: true,
             }).status(200).json(val)
         })
+      
     });
     })
 }
@@ -117,6 +126,7 @@ export const resendOTP = async (req,res) => {
 export const editProfile = async(req, res) => {
     const q = "SELECT * FROM users_info WHERE username=?"
     db.query(q, [req.body.currentuser], (err, data) => {
+       
         if (err) return res.status(500).json(err)
         console.log(data);
 
